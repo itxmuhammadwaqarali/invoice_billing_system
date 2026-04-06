@@ -134,6 +134,9 @@ class InvoiceDetailWebView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         invoice = self.get_object()
         context['items'] = invoice.items.all()
+        # Calculate total with tax: subtotal + (subtotal * tax / 100)
+        tax_amount = invoice.total_amount * invoice.tax / 100
+        context['total_with_tax'] = invoice.total_amount + tax_amount
         return context
 
 
@@ -195,5 +198,8 @@ class InvoicePrintView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         invoice = self.get_object()
         context['items'] = invoice.items.all()
+        # Calculate total with tax: subtotal + (subtotal * tax / 100)
+        tax_amount = invoice.total_amount * invoice.tax / 100
+        context['total_with_tax'] = invoice.total_amount + tax_amount
         return context
 
