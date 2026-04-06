@@ -1,7 +1,6 @@
-
 from apps.invoices.models import Invoice
-
 from django.db import models
+
 class Payment(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
