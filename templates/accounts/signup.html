@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Invoice Billing System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+	<div class="col-lg-6 col-md-8">
+		<div class="card mt-4">
+			<div class="card-header text-center">
+				<i class="fas fa-user-plus"></i> Create Account
+			</div>
+			<div class="card-body">
+				<form method="post">
+					{% csrf_token %}
+					<div class="mb-3">
+						<label class="form-label" for="id_username">Username</label>
+						<input type="text" name="username" class="form-control" id="id_username" value="{{ form_data.username|default:'' }}" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="id_email">Email</label>
+						<input type="email" name="email" class="form-control" id="id_email" value="{{ form_data.email|default:'' }}" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="id_password1">Password</label>
+						<input type="password" name="password1" class="form-control" id="id_password1" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="id_password2">Confirm Password</label>
+						<input type="password" name="password2" class="form-control" id="id_password2" required>
+					</div>
+
+					{% if errors %}
+						<div class="alert alert-danger py-2">
+							{% for err in errors %}
+								<div>{{ err }}</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+
+					<button type="submit" class="btn btn-primary w-100">
+						<i class="fas fa-check"></i> Create Account
+					</button>
+				</form>
+
+				<div class="text-center mt-3">
+					<small>Already have an account? <a href="{% url 'web-login' %}">Login here</a></small>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+

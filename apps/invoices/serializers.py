@@ -1,14 +1,13 @@
 # apps/invoices/serializers.py
 from rest_framework import serializers
 from .models import Invoice, InvoiceItem
-from apps.accounts.models import User
 from apps.clients.models import Client
 
 class InvoiceItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
-        fields = ['id', 'invoice', 'description', 'quantity', 'unit_price', 'total_price']
-        read_only_fields = ['id']
+        fields = ['id', 'description', 'quantity', 'unit_price', 'total_price']
+        read_only_fields = ['id', 'total_price']
 
 class InvoiceSerializer(serializers.ModelSerializer):
     items = InvoiceItemSerializer(many=True, read_only=True)

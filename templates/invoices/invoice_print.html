@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+
+{% block title %}Invoice {{ invoice.invoice_number}} - Print View{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body {
+            background: white;
+        }
+        .navbar, footer, .btn, .no-print {
+            display: none !important;
+        }
+        .container-fluid {
+            padding: 0;
+        }
+    }
+
+    .invoice-print {
+        background: white;
+        padding: 40px;
+        max-width: 900px;
+        margin: 20px auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 40px;
+        border-bottom: 3px solid var(--primary);
+        padding-bottom: 20px;
+    }
+
+    .company-info h1 {
+        color: var(--primary);
+        margin-bottom: 10px;
+        font-size: 2rem;
+    }
+
+    .company-info p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    .invoice-meta {
+        text-align: right;
+    }
+
+    .invoice-meta-item {
+        margin: 10px 0;
+    }
+
+    .invoice-meta-item label {
+        font-weight: 600;
+        color: var(--dark);
+        display: inline-block;
+        width: 100px;
+    }
+
+    .invoice-meta-item value {
+        color: #666;
+    }
+
+    .client-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+    }
+
+    .client-section {
+        width: 45%;
+    }
+
+    .client-section h6 {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .client-section p {
+        margin: 5px 0;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .items-table {
+        width: 100%;
+        margin: 40px 0;
+        border-collapse: collapse;
+    }
+
+    .items-table thead th {
+        background: var(--primary);
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .items-table tbody td {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .items-table tbody tr:hover {
+        background: #f9f9f9;
+    }
+
+    .items-table tfoot {
+        background: #f5f5f5;
+    }
+
+    .items-table tfoot td {
+        padding: 15px;
+        border-top: 2px solid var(--primary);
+        font-weight: 600;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .summary {
+        display: flex;
+        justify-content: flex-end;
+        margin: 30px 0;
+    }
+
+    .summary-table {
+        width: 300px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .summary-row.total {
+        border-bottom: 3px solid var(--primary);
+        font-size: 1.3rem;
+        font-weight: 700;
+        padding: 15px 0;
+        color: var(--primary);
+    }
+
+    .notes {
+        margin-top: 40px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-left: 4px solid var(--primary);
+    }
+
+    .notes h6 {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .notes p {
+        color: #666;
+        margin: 0;
+    }
+
+    .footer-text {
+        text-align: center;
+        margin-top: 40px;
+        color: #999;
+        font-size: 0.9rem;
+        border-top: 1px solid #e0e0e0;
+        padding-top: 20px;
+    }
+
+    .no-print {
+        margin-bottom: 20px;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print">
+    <button class="btn btn-primary" onclick="window.print()">
+        <i class="fas fa-print"></i> Print / Save as PDF
+    </button>
+    <a href="{% url 'invoice-detail' invoice.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="invoice-print">
+    <!-- Header -->
+    <div class="invoice-header">
+        <div class="company-info">
+            <h1><i class="fas fa-file-invoice-dollar"></i> InvoicePro</h1>
+            <p>Your Company Name</p>
+            <p>123 Business Street, City, State 12345</p>
+            <p>contact@company.com | (555) 123-4567</p>
+        </div>
+        <div class="invoice-meta">
+            <div class="invoice-meta-item">
+                <label>Invoice #:</label>
+                <span>{{ invoice.invoice_number }}</span>
+            </div>
+            <div class="invoice-meta-item">
+                <label>Date:</label>
+                <span>{{ invoice.date|date:"M d, Y" }}</span>
+            </div>
+            <div class="invoice-meta-item">
+                <label>Due Date:</label>
+                <span>{{ invoice.due_date|date:"M d, Y" }}</span>
+            </div>
+            <div class="invoice-meta-item">
+                <label>Status:</label>
+                <span>
+                    {% if invoice.status == 'paid' %}
+                        <span class="badge badge-paid">Paid</span>
+                    {% elif invoice.status == 'sent' %}
+                        <span class="badge badge-sent">Sent</span>
+                    {% elif invoice.status == 'draft' %}
+                        <span class="badge badge-draft">Draft</span>
+                    {% elif invoice.status == 'cancelled' %}
+                        <span class="badge badge-cancelled">Cancelled</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Info -->
+    <div class="client-info">
+        <div class="client-section">
+            <h6>From:</h6>
+            <p>
+                <strong>Your Company</strong><br>
+                123 Business Street<br>
+                City, State 12345<br>
+                contact@company.com
+            </p>
+        </div>
+        <div class="client-section">
+            <h6>Bill To:</h6>
+            <p>
+                <strong>{{ invoice.client.name }}</strong><br>
+                {{ invoice.client.email }}<br>
+                {{ invoice.client.phone }}<br>
+                {{ invoice.client.address }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 50%;">Description</th>
+                <th style="width: 15%;" class="text-right">Quantity</th>
+                <th style="width: 17.5%;" class="text-right">Unit Price</th>
+                <th style="width: 17.5%;" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">${{ item.unit_price }}</td>
+                <td class="text-right"><strong>${{ item.total_price }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right">Subtotal:</td>
+                <td class="text-right">${{ invoice.total_amount }}</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right">Tax ({{ invoice.tax }}%):</td>
+                <td class="text-right">${{ invoice.total_amount|mul:invoice.tax|div:100 }}</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Total Due:</strong></td>
+                <td class="text-right"><strong>${{ invoice.total_amount|add:invoice.total_amount|mul:invoice.tax|div:100 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Notes -->
+    {% if invoice.notes %}
+    <div class="notes">
+        <h6>Notes:</h6>
+        <p>{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer-text">
+        <p>Thank you for your business! Payment due by {{ invoice.due_date|date:"M d, Y" }}</p>
+        <p>For questions about this invoice, please contact us at contact@company.com</p>
+    </div>
+</div>
+{% endblock %}
+
