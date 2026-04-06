@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Invoice Billing System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-chart-pie"></i> Dashboard</h1>
+            <p>Welcome back! Here's your business overview.</p>
+        </div>
+        <a href="{% url 'invoice-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Invoice
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <i class="fas fa-file-invoice" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+            <h3>{{ total_invoices }}</h3>
+            <p>Total Invoices</p>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <i class="fas fa-check-circle" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+            <h3>${{ total_paid }}</h3>
+            <p>Total Paid</p>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card warning">
+            <i class="fas fa-clock" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+            <h3>${{ total_pending }}</h3>
+            <p>Pending Amount</p>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card danger">
+            <i class="fas fa-users" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+            <h3>{{ total_clients }}</h3>
+            <p>Total Clients</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list"></i> Recent Invoices
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Client</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td><strong>{{ invoice.invoice_number }}</strong></td>
+                                <td>{{ invoice.client.name }}</td>
+                                <td>${{ invoice.total_amount }}</td>
+                                <td>{{ invoice.due_date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if invoice.status == 'draft' %}
+                                        <span class="badge badge-draft">Draft</span>
+                                    {% elif invoice.status == 'sent' %}
+                                        <span class="badge badge-sent">Sent</span>
+                                    {% elif invoice.status == 'paid' %}
+                                        <span class="badge badge-paid">Paid</span>
+                                    {% elif invoice.status == 'cancelled' %}
+                                        <span class="badge badge-cancelled">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                        <a href="{% url 'invoice-detail-web' invoice.id %}" class="btn btn-sm btn-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'invoice-edit' invoice.id %}" class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'invoice-delete' invoice.id %}" class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-inbox" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 10px;"></i>
+                                    <p>No invoices yet. Create your first invoice!</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bolt"></i> Quick Actions
+            </div>
+            <div class="card-body">
+                <a href="{% url 'invoice-create' %}" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-file-alt"></i> New Invoice
+                </a>
+                <a href="{% url 'invoice-list-web' %}" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-list"></i> All Invoices
+                </a>
+                <a href="/clients/" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-user-plus"></i> Add Client
+                </a>
+                <a href="{% url 'profile' %}" class="btn btn-primary w-100">
+                    <i class="fas fa-cog"></i> Account Settings
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Invoice Status Breakdown
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Draft</span>
+                        <span class="badge badge-draft">{{ draft_count }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ draft_percentage }}%; background: #0ea5e9;"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sent</span>
+                        <span class="badge badge-sent">{{ sent_count }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ sent_percentage }}%; background: #f59e0b;"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Paid</span>
+                        <span class="badge badge-paid">{{ paid_count }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ paid_percentage }}%; background: #10b981;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Cancelled</span>
+                        <span class="badge badge-cancelled">{{ cancelled_count }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ cancelled_percentage }}%; background: #ef4444;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

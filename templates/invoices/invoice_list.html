@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+
+{% block title %}Invoices - Invoice Billing System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-file-invoice"></i> Invoices</h1>
+            <p>Manage all your invoices in one place.</p>
+        </div>
+        <a href="{% url 'invoice-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Invoice
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Filter by Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Filter by Client</label>
+                <input type="text" class="form-control" id="clientFilter" placeholder="Search client...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Invoice Number</label>
+                <input type="text" class="form-control" id="invoiceFilter" placeholder="Search invoice...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-primary w-100" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> All Invoices
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Amount</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>
+                            <strong>{{ invoice.invoice_number }}</strong><br>
+                            <small class="text-muted">{{ invoice.date|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <i class="fas fa-user-circle"></i> {{ invoice.client.name }}
+                        </td>
+                        <td>${{ invoice.total_amount }}</td>
+                        <td>{{ invoice.tax }}%</td>
+                        <td><strong>${{ invoice.total_amount|add:invoice.total_amount|mul:invoice.tax|div:100 }}</strong></td>
+                        <td>{{ invoice.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if invoice.status == 'draft' %}
+                                <span class="badge badge-draft">Draft</span>
+                            {% elif invoice.status == 'sent' %}
+                                <span class="badge badge-sent">Sent</span>
+                            {% elif invoice.status == 'paid' %}
+                                <span class="badge badge-paid">Paid</span>
+                            {% elif invoice.status == 'cancelled' %}
+                                <span class="badge badge-cancelled">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ invoice.created_by.first_name }} {{ invoice.created_by.last_name }}</td>
+                        <td>
+                            <a href="{% url 'invoice-detail-web' invoice.id %}" class="btn btn-sm btn-primary" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'invoice-edit' invoice.id %}" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'invoice-delete' invoice.id %}" class="btn btn-sm btn-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="fas fa-inbox" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 10px;"></i>
+                            <p>No invoices found. <a href="{% url 'invoice-create' %}">Create your first invoice</a></p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    function applyFilters() {
+        const status = document.getElementById('statusFilter').value;
+        const client = document.getElementById('clientFilter').value;
+        const invoice = document.getElementById('invoiceFilter').value;
+
+        let url = '?';
+        if (status) url += 'status=' + status + '&';
+        if (client) url += 'client=' + client + '&';
+        if (invoice) url += 'invoice=' + invoice;
+
+        window.location.href = url;
+    }
+
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}
+

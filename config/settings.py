@@ -19,6 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 AUTH_USER_MODEL = 'accounts.User'
+LOGIN_URL = 'web-login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'web-login'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -43,7 +46,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
-    'apps.accounts',
+    'apps.accounts.apps.AccountsConfig',
     'apps.clients',
     'apps.invoices',
     'apps.payments',
@@ -64,7 +67,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
